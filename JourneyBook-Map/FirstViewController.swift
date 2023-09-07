@@ -15,6 +15,8 @@ class FirstViewController: UIViewController ,UITableViewDelegate,UITableViewData
     
     var titleArray = [String]()
     var idArray = [UUID]()
+    var chosenTitle = ""
+    var chosenTitleID : UUID?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,9 +27,11 @@ class FirstViewController: UIViewController ,UITableViewDelegate,UITableViewData
         tableView.delegate = self
         getData()
     }
+    override func viewWillAppear(_ animated: Bool) {
+        NotificationCenter.default.addObserver(self, selector: #selector(getData), name: NSNotification.Name("newPlace"), object: nil)
+    }
     
-    
-    func getData(){
+   @objc func getData(){
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = appDelegate.persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Places")
@@ -56,6 +60,7 @@ class FirstViewController: UIViewController ,UITableViewDelegate,UITableViewData
     
     
     @objc func addButtonClicked(){
+        chosenTitle = ""
         performSegue(withIdentifier: "toViewController", sender: nil)
         
     }
@@ -66,10 +71,24 @@ class FirstViewController: UIViewController ,UITableViewDelegate,UITableViewData
    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
+       // cell.textLabel?.text = "test"
         cell.textLabel?.text = titleArray[indexPath.row]
         return cell
     }
 
-
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        chosenTitle = titleArray[indexPath.row]
+        chosenTitleID = idArray[indexPath.row]
+        performSegue(withIdentifier: "toViewController", sender: nil)
+        
+    }
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "toViewController" {
+            let destinationVC = segue.destination as! ViewController
+            destinationVC.selectedTitle = chosenTitle
+            destinationVC.selectedTitleID = chosenTitleID
+            
+        }
+    }
 
 }
